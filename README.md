@@ -1,16 +1,27 @@
-# QueueSense — FT-01 Smart Traffic Signal Optimisation
+# QueueSense
 
-QueueSense is a Python prototype that analyzes a local intersection video with YOLOv8 nano and updates a recommended N/S versus E/W green-time split as sampled frames are processed. It is designed as a demonstrable edge-AI concept for Neural Storm FT-01.
+**Video-based adaptive traffic signal timing prototype**
 
-## What the demo does
+QueueSense estimates traffic demand from an intersection video and recommends how to divide green time between north/south and east/west approaches. It is built with Python, Streamlit, OpenCV, and a pretrained YOLOv8 nano detector.
 
-- Runs a pretrained YOLOv8 nano detector locally on the uploaded clip.
-- Counts cars, motorcycles, buses, and trucks inside four simple approach regions.
-- Smooths frame-to-frame count changes with an exponential moving average.
-- Recommends an adaptive split within minimum and maximum green limits, preserving a feasible cycle.
-- Shows queue-estimate and controller-response charts, a fixed equal-split baseline, and downloadable frame-level CSV results.
+## The problem
 
-The adaptive recommendation changes as sampled frames are analyzed. The current app replays an uploaded clip; it does not connect to a live intersection or operate a real signal.
+Many intersections use fixed signal timings even when traffic demand changes by direction. A fixed split can give equal green time to a quiet approach and a busier one. QueueSense demonstrates a simple way to use camera detections to recommend a more responsive split.
+
+## How QueueSense works
+
+1. The user uploads a short intersection video.
+2. YOLOv8 nano detects cars, motorcycles, buses, and trucks in sampled frames.
+3. The app places detections into four image regions representing north, south, east, and west approaches.
+4. North+south and east+west counts are smoothed over time to reduce sudden changes from missed or noisy detections.
+5. A bounded controller allocates green time in proportion to the smoothed counts, while respecting minimum and maximum green limits.
+6. The app displays the annotated frame, queue estimates, changing green split, comparison with equal fixed timing, and a downloadable CSV.
+
+## What is included
+
+- `app.py` — Streamlit application and adaptive timing logic.
+- `requirements.txt` — Python package dependencies, including CPU-only PyTorch.
+- `.gitignore` — files that should stay out of the public repository.
 
 ## Run locally
 
@@ -23,38 +34,27 @@ python -m pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-Open the local URL printed by Streamlit, usually `http://localhost:8501`. On first run, Ultralytics downloads `yolov8n.pt` if it is not already present. CPU inference works but may be slower; a GPU is optional.
+Open the local URL printed in the terminal, usually `http://localhost:8501`. On first run, Ultralytics downloads the YOLOv8 nano weights if they are not already available. CPU inference is supported; a GPU is not required.
 
-## Controller logic
+## Demo results
 
-The video frame is passed to the pretrained detector. Vehicle box centers are assigned to four fixed image regions (N, S, E, W). The paired estimates form N/S and E/W demand. An exponential moving average reduces short frame-to-frame detection jitter. The adaptive controller divides a cycle between the two approaches in proportion to their smoothed estimates, subject to configurable green limits. The baseline uses an equal split.
+For the sample clip shown in the project demo, the app reported average estimated detections of **3.8 N/S** and **2.5 E/W**, with a typical recommended split of about **22s / 20s**. These are outputs from one video and one simple region layout; they are not measured traffic counts or proof of reduced waiting time.
 
-The region geometry in `approach_counts()` is intentionally simple and should be tuned to the chosen camera view. Use a stable elevated clip that shows all four approaches for the most understandable demonstration.
+Add screenshots or a short demo recording here:
 
-## How to describe results accurately
+- `![QueueSense dashboard](screenshots/queuesense-results.png)`
+- Demo video: TODO
 
-The displayed values are **vehicle detections in image regions**, not tracked unique vehicles or validated queue lengths. The app recommends signal timing but does not simulate arrivals and departures, measure actual waiting time, or establish congestion reduction. Do not claim a measured improvement from the charts. A rigorous next step would add vehicle tracking and compare both controllers in a traffic simulator or controlled field study.
+## Limitations and next steps
 
-## Project demo checklist
+- The app replays an uploaded clip; it does not connect to a live city camera.
+- Counts are detections in image regions, not tracked unique vehicles or validated queue lengths.
+- The four regions are simple fixed image areas and need tuning for each camera angle.
+- Green-time recommendations are a prototype policy. The app does not control real signals, simulate vehicle movement, or measure actual delay reduction.
 
-1. Use a short four-way intersection clip and tune the regions if needed.
-2. Run the app and capture the summary, queue chart, controller-response chart, and comparison table.
-3. Download the frame-level CSV and describe it as model output, not ground truth.
-4. Add a short screen recording or GIF showing the recommendation updating while frames are processed.
+Possible next steps include vehicle tracking, user-adjustable approach regions, a traffic simulator for before/after evaluation, and a live camera input.
 
-## Hackathon submission checklist
+## Tools used
 
-- Make the GitHub repository public.
-- Include `app.py`, `requirements.txt`, `.gitignore`, this README, and a results screenshot.
-- Fill in the team name and member names below.
-- Disclose AI development tools used, including ChatGPT or GitHub Copilot, if applicable.
-- Add a demo/deployment link if available and verify that the repository is accessible.
+- **Python, Streamlit, OpenCV, Ultralytics YOLOv8 nano, NumPy, and pandas** — application and video-analysis stack.
 
-## Team
-
-- Team name: TODO
-- Members: TODO
-
-## AI tool disclosure
-
-TODO: List tools used and briefly describe their role in the project.
