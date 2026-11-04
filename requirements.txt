@@ -1,0 +1,5 @@
+streamlit>=1.37,<2
+ultralytics>=8.2,<9
+opencv-python-headless>=4.9,<5
+numpy>=1.26,<3
+pandas>=2.2,<3
